@@ -44,13 +44,11 @@ DECIMALS_MAPPING = {
     "WETH": 18,
     "NEO": 0,
     "DYT": 18,
-    "MUU": 18,
     "DANK": 18,
     "USDC": 6,
     "SWTH": 8,
     "CAKE": 18,
     "DAI": 18,
-    "N3": 0,
     "BNEO": 8,
     "AVAX": 18,
     "WAVAX": 18,
@@ -61,6 +59,7 @@ DECIMALS_MAPPING = {
     "APE": 18,
     "SOM": 8,
     "FUSDT": 6,
+    "FUSD": 8,
     "NEX": 8
 }
 ATTRIBUTES_TO_SHOW = 6
