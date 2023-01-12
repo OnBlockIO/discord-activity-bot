@@ -71,7 +71,7 @@ bot = commands.Bot(command_prefix='??', description=description, intents=intents
 last_sales_time = int(time.time())
 last_bids_time = int(time.time())
 last_offers_time = int(time.time())
-last_listings_time = 1673546228 # int(time.time())
+last_listings_time = int(time.time())
 
 
 def _get_asset_id(chain, contract, token_id):
