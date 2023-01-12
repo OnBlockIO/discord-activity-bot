@@ -14,10 +14,12 @@ urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHANNEL_TO_POST = 1061964201272287263
-GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false"
-GM_OFFERS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=offercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false"
-GM_BIDS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderbid&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false"
-GM_LISTINGS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=ordercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false"
+CHAIN_FILTER = ""
+COLLECTION_FILTER = ""
+GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
+GM_OFFERS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=offercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
+GM_BIDS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderbid&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
+GM_LISTINGS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=ordercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
 GM_ASSETS_URL = "https://api.ghostmarket.io/api/v2/assets?Chain={}&Contract={}&TokenIds[]={}"
 GM_ATTR_URL = "https://api.ghostmarket.io/api/v2/asset/{}/attributes?page=1&size={}"
 CHAIN_MAPPING = {
@@ -87,7 +89,7 @@ def _get_asset_attributes(asset_id):
 
 def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color):
     events = []
-    url = base_url.format(last_time)
+    url = base_url.format(last_time, CHAIN_FILTER, COLLECTION_FILTER)
     res = requests.get(url, verify=False).json()
     for i, event in enumerate(res["events"] if res["events"] else []):
         if i == 0:
@@ -98,10 +100,12 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
         collection_slug = event['collection']['slug']
         if event_name == "sale":
             user = event['toAddress'].get('offchainTitle', event['toAddress'].get('offchainName', event['toAddress'].get('onchainName', event['toAddress']['address'])))
+            if len(user) > 20 and user == event['toAddress']['address']:
+                user = f"{user[:5]}...{user[-5:]}"
         else:
             user = event['fromAddress'].get('offchainTitle', event['fromAddress'].get('offchainName', event['fromAddress'].get('onchainName', event['fromAddress']['address'])))
-        if len(user) > 20:
-            user = f"{user[:5]}...{user[-5:]}"
+            if len(user) > 20 and user == event['fromAddress']['address']:
+                user = f"{user[:5]}...{user[-5:]}"
         currency = event['quoteContract']['symbol']
         decimals = DECIMALS_MAPPING.get(currency, 0)
         price = locale.format_string("%.2f", int(event['price']) / 10 ** decimals, grouping=True)
@@ -119,13 +123,15 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
             attributes = _get_asset_attributes(asset_id)
             if attributes:
                 if chain == "pha":
-                    description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_num} of {mint_max}**\n\n"
+                    mint_part = f"{mint_num} of {mint_max}" if mint_max != 0 else f"{mint_num}"
+                    description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_part}**\n\n"
                 else:
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\n\n"
             else:
                 attributes = []
                 if chain == "pha":
-                    description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_num} of {mint_max}**"
+                    mint_part = f"{mint_num} of {mint_max}" if mint_max != 0 else f"{mint_num}"
+                    description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_part}**"
                 else:
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})"
         else:
@@ -137,7 +143,8 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
             media_uri = f"https://cdn.ghostmarket.io/ext-thumbs/{media_uri.replace('ipfs://', '')}"
         embed = discord.Embed(title=f"New {event_name}: {chain_name} {collection} NFT",
                               description=description, color=embed_color)
-        embed.set_thumbnail(url=media_uri)
+        if len(media_uri) < 200 and media_uri.startswith("http"):
+            embed.set_thumbnail(url=media_uri)
         if event.get('metadata') is not None:
             for attr in attributes:
                 embed.add_field(name=attr["key"]["displayName"], value=attr["value"]["value"], inline=True)
