@@ -71,7 +71,7 @@ bot = commands.Bot(command_prefix='??', description=description, intents=intents
 last_sales_time = int(time.time())
 last_bids_time = int(time.time())
 last_offers_time = int(time.time())
-last_listings_time = int(time.time())
+last_listings_time = 1673546228 # int(time.time())
 
 
 def _get_asset_id(chain, contract, token_id):
@@ -107,8 +107,8 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
                 user = f"{user[:5]}...{user[-5:]}"
         currency = event['quoteContract']['symbol']
         decimals = DECIMALS_MAPPING.get(currency, 0)
-        price = locale.format_string("%.2f", int(event['price']) / 10 ** decimals, grouping=True)
-        price = price[:-3] if price[-3:] == ".00" else price
+        price = f"{round(int(event['price']) / 10 ** decimals, 4)}"
+        price = price[:-2] if price[-2:] == ".0" else price
         price_usd = round(float(event['localPrice']), 2)
         contract = event['contract']['hash']
         if event.get('metadata') is not None:
