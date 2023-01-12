@@ -60,7 +60,8 @@ DECIMALS_MAPPING = {
     "SOM": 8,
     "FUSDT": 6,
     "FUSD": 8,
-    "NEX": 8
+    "NEX": 8,
+    "NEP": 8
 }
 ATTRIBUTES_TO_SHOW = 6
 
