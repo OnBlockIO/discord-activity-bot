@@ -1,6 +1,5 @@
 import asyncio
 import discord
-import locale
 import os
 import requests
 import threading
@@ -9,11 +8,10 @@ import urllib3
 
 from discord.ext import commands
 
-locale.setlocale(locale.LC_ALL, 'en_US')
 urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHANNEL_TO_POST = 1061964201272287263
+CHANNEL_TO_POST = 1063411484090175538
 CHAIN_FILTER = ""
 COLLECTION_FILTER = ""
 GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
