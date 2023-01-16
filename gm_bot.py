@@ -13,7 +13,7 @@ locale.setlocale(locale.LC_ALL, 'en_US')
 urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHANNEL_TO_POST = 1061964201272287263
+CHANNEL_TO_POST = os.environ.get("CHANNEL_ID")
 CHAIN_FILTER = ""
 COLLECTION_FILTER = ""
 GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
@@ -72,7 +72,7 @@ bot = commands.Bot(command_prefix='??', description=description, intents=intents
 last_sales_time = int(time.time())
 last_bids_time = int(time.time())
 last_offers_time = int(time.time())
-last_listings_time = int(time.time())
+last_listings_time = 1673521331 # int(time.time())
 
 
 def _get_asset_id(chain, contract, token_id):
@@ -116,7 +116,7 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
             token_id = event['tokenId']
             nft_name = event['metadata']['name']
             nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{token_id}"
-            media_uri = event['metadata']['mediaUri']
+            media_uri = event['metadata'].get('mediaUri', '')
             mint_num = event['metadata']['mintNumber']
             mint_max = event['series']['maxSupply']
             asset_id = _get_asset_id(chain, contract, token_id)
@@ -175,23 +175,27 @@ while True:
         for sale in sales[::-1]:
             bot.loop.create_task(_discord_task(sale))
     except:
+        last_sales_time = int(time.time())
         print("Error retrieving last sales")
     try:
         listings, last_listings_time = get_gm_events_from_last_time(GM_LISTINGS_URL, last_listings_time, "listing", "Offered", 0x2596be)
         for listing in listings[::-1]:
             bot.loop.create_task(_discord_task(listing))
     except:
+        last_listings_time = int(time.time())
         print("Error retrieving last listings")
     try:
         offers, last_offers_time = get_gm_events_from_last_time(GM_OFFERS_URL, last_offers_time, "offer", "Offer", 0xe4b634)
         for offer in offers[::-1]:
             bot.loop.create_task(_discord_task(offer))
     except:
+        last_offers_time = int(time.time())
         print("Error retrieving last offers")
     try:
         bids, last_bids_time = get_gm_events_from_last_time(GM_BIDS_URL, last_bids_time, "bid", "Bid", 0xb54423)
         for bid in bids[::-1]:
             bot.loop.create_task(_discord_task(bid))
     except:
+        last_bids_time = int(time.time())
         print("Error retrieving last bids")
     time.sleep(10)
