@@ -11,7 +11,7 @@ from discord.ext import commands
 urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
-CHANNEL_TO_POST = os.environ.get("CHANNEL_ID")
+CHANNEL_TO_POST = int(os.environ.get("CHANNEL_ID"))
 CHAIN_FILTER = ""
 COLLECTION_FILTER = ""
 GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
@@ -70,7 +70,7 @@ bot = commands.Bot(command_prefix='??', description=description, intents=intents
 last_sales_time = int(time.time())
 last_bids_time = int(time.time())
 last_offers_time = int(time.time())
-last_listings_time = 1673521331 # int(time.time())
+last_listings_time = int(time.time())
 
 
 def _get_asset_id(chain, contract, token_id):
