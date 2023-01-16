@@ -1,6 +1,5 @@
 import asyncio
 import discord
-import locale
 import os
 import requests
 import threading
@@ -9,7 +8,6 @@ import urllib3
 
 from discord.ext import commands
 
-locale.setlocale(locale.LC_ALL, 'en_US')
 urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
