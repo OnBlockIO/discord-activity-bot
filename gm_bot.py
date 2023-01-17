@@ -63,7 +63,7 @@ DECIMALS_MAPPING = {
 }
 ATTRIBUTES_TO_SHOW = 6
 
-intents = discord.Intents.all()
+intents = discord.Intents.default()
 description = "A bot for GhostMarket activity"
 bot = commands.Bot(command_prefix='??', description=description, intents=intents)
 
