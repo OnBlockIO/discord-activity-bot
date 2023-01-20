@@ -12,8 +12,9 @@ urllib3.disable_warnings()
 
 BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHANNEL_TO_POST = int(os.environ.get("CHANNEL_ID"))
-CHAIN_FILTER = ""
-COLLECTION_FILTER = ""
+CHAIN_FILTER = os.environ.get("CHAIN_FILTER", "")
+COLLECTION_FILTER = os.environ.get("COLLECTION_FILTER", "")
+print(CHAIN_FILTER)
 GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
 GM_OFFERS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=offercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
 GM_BIDS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderbid&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
@@ -82,7 +83,8 @@ def _get_asset_id(chain, contract, token_id):
 def _get_asset_attributes(asset_id):
     url = GM_ATTR_URL.format(asset_id, ATTRIBUTES_TO_SHOW)
     res = requests.get(url, verify=False).json()
-    return res["attributes"]
+    res = [x for x in res["attributes"] if x['key'].get('displayName')]
+    return res
 
 
 def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color):
