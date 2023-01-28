@@ -82,8 +82,9 @@ def _get_asset_id(chain, contract, token_id):
 def _get_asset_attributes(asset_id):
     url = GM_ATTR_URL.format(asset_id, ATTRIBUTES_TO_SHOW)
     res = requests.get(url, verify=False).json()
-    res = [x for x in res["attributes"] if x['key'].get('displayName')]
-    return res
+    attributes = res.get("attributes", []) if res.get("attributes") else []
+    attributes = [x for x in attributes if x['key'].get('displayName')]
+    return attributes
 
 
 def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color):
@@ -117,7 +118,7 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
         if event.get('metadata') is not None:
             token_id = event['tokenId']
             nft_name = event['metadata']['name']
-            nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{token_id}"
+            nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{token_id}/"
             media_uri = event['metadata'].get('mediaUri', '')
             mint_num = event['metadata']['mintNumber']
             mint_max = event['series']['maxSupply']
@@ -138,15 +139,17 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})"
         else:
             nft_name = "Collection offer"
-            nft_url = f"https://ghostmarket.io/collection/{collection_slug}"
+            nft_url = f"https://ghostmarket.io/collection/{collection_slug}/"
             media_uri = f"https://cdn.ghostmarket.io/col-avatar/gm/thumb/{collection_slug}.png"
             description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})"
         if media_uri.startswith("ipfs://"):
             media_uri = f"https://cdn.ghostmarket.io/ext-thumbs/{media_uri.replace('ipfs://', '')}"
         embed = discord.Embed(title=f"New {event_name}: {chain_name} {collection} NFT",
                               description=description, color=embed_color)
-        if len(media_uri) < 200 and media_uri.startswith("http"):
-            embed.set_thumbnail(url=media_uri)
+        if len(media_uri) < 300 and media_uri.startswith("http"):
+            res = requests.get(media_uri)
+            if res.headers.get('Content-Type', '') != "application/octet-stream":
+                embed.set_thumbnail(url=media_uri)
         if event.get('metadata') is not None:
             for attr in attributes:
                 embed.add_field(name=attr["key"]["displayName"], value=attr["value"]["value"], inline=True)
