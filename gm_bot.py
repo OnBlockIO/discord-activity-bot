@@ -14,10 +14,10 @@ BOT_TOKEN = os.environ.get("BOT_TOKEN")
 CHANNEL_TO_POST = int(os.environ.get("CHANNEL_ID"))
 CHAIN_FILTER = os.environ.get("CHAIN_FILTER", "")
 COLLECTION_FILTER = os.environ.get("COLLECTION_FILTER", "")
-GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
-GM_OFFERS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=offercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
-GM_BIDS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderbid&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
-GM_LISTINGS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=ordercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}"
+GM_SALES_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderfilled&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}&platforms[]=ghostmarket"
+GM_OFFERS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=offercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}&platforms[]=ghostmarket"
+GM_BIDS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=orderbid&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}&platforms[]=ghostmarket"
+GM_LISTINGS_URL = "https://api.ghostmarket.io/api/v2/events?page=1&size=100&DateFrom={}&DateTill={}&orderBy=date&orderDirection=desc&getTotal=true&localCurrency=USD&chain=&grouping=true&eventKind=ordercreated&onlyVerified=false&showBurned=false&nftName=&showBlacklisted=false&showNsfw=false&chain={}&collection={}&platforms[]=ghostmarket"
 GM_ASSETS_URL = "https://api.ghostmarket.io/api/v2/assets?Chain={}&Contract={}&TokenIds[]={}"
 GM_ATTR_URL = "https://api.ghostmarket.io/api/v2/asset/{}/attributes?page=1&size={}"
 CHAIN_MAPPING = {
@@ -87,14 +87,15 @@ def _get_asset_attributes(asset_id):
     return attributes
 
 
-def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color):
-    events = []
+def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color, events, cursor):
     max_time_to_get = int(time.time()) - 60
     if max_time_to_get <= last_time:
         return events, last_time
     url = base_url.format(last_time, max_time_to_get, CHAIN_FILTER, COLLECTION_FILTER)
+    if cursor:
+        url += f"Cursor={cursor}"
     res = requests.get(url, verify=False).json()
-    for i, event in enumerate(res["events"] if res["events"] else []):
+    for i, event in enumerate(res.get("events", []) if res.get("events", []) else []):
         if i == 0:
             last_time = event['date'] + 1
         chain = event['contract']['chain']
@@ -147,13 +148,15 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
         embed = discord.Embed(title=f"New {event_name}: {chain_name} {collection} NFT",
                               description=description, color=embed_color)
         if len(media_uri) < 300 and media_uri.startswith("http"):
-            res = requests.get(media_uri)
-            if res.headers.get('Content-Type', '') != "application/octet-stream":
+            res_media = requests.get(media_uri)
+            if res_media.headers.get('Content-Type', '') != "application/octet-stream":
                 embed.set_thumbnail(url=media_uri)
         if event.get('metadata') is not None:
             for attr in attributes:
                 embed.add_field(name=attr["key"]["displayName"], value=attr["value"]["value"], inline=True)
         events.append(embed)
+    if res.get("next"):
+        return get_gm_events_from_last_time(base_url, last_time, event_name, action_name, embed_color, events, res.get("next"))
     return events, last_time
 
 
@@ -176,28 +179,28 @@ t.start()
 
 while True:
     try:
-        sales, last_sales_time = get_gm_events_from_last_time(GM_SALES_URL, last_sales_time, "sale", "Bought", 0x03fc7b)
+        sales, last_sales_time = get_gm_events_from_last_time(GM_SALES_URL, last_sales_time, "sale", "Bought", 0x03fc7b, [], None)
         for sale in sales[::-1]:
             bot.loop.create_task(_discord_task(sale))
     except:
         last_sales_time = int(time.time())
         print("Error retrieving last sales")
     try:
-        listings, last_listings_time = get_gm_events_from_last_time(GM_LISTINGS_URL, last_listings_time, "listing", "Offered", 0x2596be)
+        listings, last_listings_time = get_gm_events_from_last_time(GM_LISTINGS_URL, last_listings_time, "listing", "Offered", 0x2596be, [], None)
         for listing in listings[::-1]:
             bot.loop.create_task(_discord_task(listing))
     except:
         last_listings_time = int(time.time())
         print("Error retrieving last listings")
     try:
-        offers, last_offers_time = get_gm_events_from_last_time(GM_OFFERS_URL, last_offers_time, "offer", "Offer", 0xe4b634)
+        offers, last_offers_time = get_gm_events_from_last_time(GM_OFFERS_URL, last_offers_time, "offer", "Offer", 0xe4b634, [], None)
         for offer in offers[::-1]:
             bot.loop.create_task(_discord_task(offer))
     except:
         last_offers_time = int(time.time())
         print("Error retrieving last offers")
     try:
-        bids, last_bids_time = get_gm_events_from_last_time(GM_BIDS_URL, last_bids_time, "bid", "Bid", 0xb54423)
+        bids, last_bids_time = get_gm_events_from_last_time(GM_BIDS_URL, last_bids_time, "bid", "Bid", 0xb54423, [], None)
         for bid in bids[::-1]:
             bot.loop.create_task(_discord_task(bid))
     except:
