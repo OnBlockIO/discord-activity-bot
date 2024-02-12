@@ -128,14 +128,14 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
             attributes = _get_asset_attributes(asset_id)
             if attributes:
                 if chain == "pha":
-                    mint_part = f"{mint_num} of {mint_max}" if mint_max != 0 else f"{mint_num}"
+                    mint_part = f"{mint_num} of {mint_max}" if str(mint_max) != '0' else f"{mint_num}"
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_part}**\n\n"
                 else:
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\n\n"
             else:
                 attributes = []
                 if chain == "pha":
-                    mint_part = f"{mint_num} of {mint_max}" if mint_max != 0 else f"{mint_num}"
+                    mint_part = f"{mint_num} of {mint_max}" if str(mint_max) != '0' else f"{mint_num}"
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})\nMint **{mint_part}**"
                 else:
                     description = f"[{nft_name}]({nft_url})\n{action_name} by **{user}**\nFor **{price} {currency}** (${price_usd})"
