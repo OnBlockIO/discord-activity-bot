@@ -1,8 +1,6 @@
-version: '3.9'
+version: "3.9"
 services:
-  discord-activity-bot:
-    image: master/onblock-discord-bot.py:latest
-    restart: always
-    environment:
-      BOT_TOKEN: "OTUxMDczNjQyMDgxNTYyNjY3.YiiKWg._OWCoWB2V_EFx6gve_FIeQDYPas"
-      CHANNEL_ID: 1063411484090175538
+  discord_stats:
+    image: discord_activity_app
+    env_file:
+      - .env
