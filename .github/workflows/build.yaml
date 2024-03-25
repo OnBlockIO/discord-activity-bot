@@ -16,11 +16,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@master
-      - name: Build and publish OnBlock.DiscordStats.py to registry
+      - name: Build and publish onblock-discord-bot.py to registry
         uses: aevea/action-kaniko@master
         with:
           registry: ghcr.io
           password: ${{ secrets.GITHUB_TOKEN }}
           path: ./
           build_file: ./Dockerfile
-          image: master/onblock.discordstats.py
+          image: master/onblock-discord-bot.py
