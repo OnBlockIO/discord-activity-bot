@@ -119,8 +119,9 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
         contract = event['contract']['hash']
         if event.get('metadata') is not None:
             token_id = event['tokenId']
+            safe_token_id = urllib3.parse.quote_plus(token_id)
             nft_name = event['metadata']['name']
-            nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{token_id}/"
+            nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{safe_token_id}/"
             media_uri = event['metadata'].get('mediaUri', '')
             mint_num = event['metadata']['mintNumber']
             mint_max = event['series']['maxSupply']
