@@ -215,4 +215,4 @@ while True:
         print("Error retrieving last bids")
     timeout_sesc = 10
     print(f"All tasks done. Going sleep for {timeout_sesc} secs...")
-    time.sleep(10)
+    time.sleep(timeout_sesc)
