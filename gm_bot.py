@@ -171,10 +171,15 @@ async def _discord_task(embed):
     print(f"Sending msg to channel {channel}")
     await channel.send(embed=embed)
 
+async def _check_bot():
+    await bot.wait_until_ready()
+    channel = bot.get_channel(CHANNEL_TO_POST)
+    print(f"#### Check bot done. Channel will be used: {channel} ####")
 
 def loop_in_thread(loop):
     print("STARTING DISCORD EVENT LOOP")
     loop.create_task(bot.start(BOT_TOKEN))
+    loop.create_task(_check_bot())
     loop.run_forever()
 
 
@@ -187,6 +192,7 @@ while True:
     print("Invoking main task...")
     try:
         sales, last_sales_time = get_gm_events_from_last_time(GM_SALES_URL, last_sales_time, "sale", "Bought", 0x03fc7b, [], None)
+        print(f"Sales to send: {len(sales)}")
         for sale in sales[::-1]:
             bot.loop.create_task(_discord_task(sale))
     except:
@@ -194,6 +200,7 @@ while True:
         print("Error retrieving last sales")
     try:
         listings, last_listings_time = get_gm_events_from_last_time(GM_LISTINGS_URL, last_listings_time, "listing", "Offered", 0x2596be, [], None)
+        print(f"Listings to send: {len(listings)}")
         for listing in listings[::-1]:
             bot.loop.create_task(_discord_task(listing))
     except:
@@ -201,6 +208,7 @@ while True:
         print("Error retrieving last listings")
     try:
         offers, last_offers_time = get_gm_events_from_last_time(GM_OFFERS_URL, last_offers_time, "offer", "Offer", 0xe4b634, [], None)
+        print(f"Offers to send: {len(offers)}")
         for offer in offers[::-1]:
             bot.loop.create_task(_discord_task(offer))
     except:
@@ -208,6 +216,7 @@ while True:
         print("Error retrieving last offers")
     try:
         bids, last_bids_time = get_gm_events_from_last_time(GM_BIDS_URL, last_bids_time, "bid", "Bid", 0xb54423, [], None)
+        print(f"Bids to send: {len(bids)}")
         for bid in bids[::-1]:
             bot.loop.create_task(_discord_task(bid))
     except:
