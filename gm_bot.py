@@ -168,6 +168,7 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
 async def _discord_task(embed):
     await bot.wait_until_ready()
     channel = bot.get_channel(CHANNEL_TO_POST)
+    print(f"Sending msg to channel {channel}")
     await channel.send(embed=embed)
 
 
@@ -183,6 +184,7 @@ t.start()
 
 
 while True:
+    print("Invoking main task...")
     try:
         sales, last_sales_time = get_gm_events_from_last_time(GM_SALES_URL, last_sales_time, "sale", "Bought", 0x03fc7b, [], None)
         for sale in sales[::-1]:
@@ -211,4 +213,6 @@ while True:
     except:
         last_bids_time = int(time.time())
         print("Error retrieving last bids")
+    timeout_sesc = 10
+    print(f"All tasks done. Going sleep for {timeout_sesc} secs...")
     time.sleep(10)
