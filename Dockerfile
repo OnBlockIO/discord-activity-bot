@@ -11,4 +11,4 @@ COPY gm_bot.py .
 
 RUN pip install -r requirements.txt
 
-CMD python gm_bot.py
+CMD python -u gm_bot.py
