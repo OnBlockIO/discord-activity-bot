@@ -5,6 +5,7 @@ import requests
 import threading
 import time
 import urllib3
+import urllib.parse as urllib_parse
 
 from discord.ext import commands
 
@@ -122,7 +123,7 @@ def get_gm_events_from_last_time(base_url, last_time, event_name, action_name, e
         contract = event['contract']['hash']
         if event.get('metadata') is not None:
             token_id = event['tokenId']
-            safe_token_id = urllib3.parse.quote_plus(token_id)
+            safe_token_id = urllib_parse.quote_plus(token_id) # safe_token_id = urllib3.parse.quote_plus(token_id)
             nft_name = event['metadata']['name']
             nft_url = f"https://ghostmarket.io/asset/{chain}/{contract}/{safe_token_id}/"
             media_uri = event['metadata'].get('mediaUri', '')
@@ -195,33 +196,33 @@ while True:
         print(f"Sales to send: {len(sales)}")
         for sale in sales[::-1]:
             bot.loop.create_task(_discord_task(sale))
-    except:
+    except Exception as err:
         last_sales_time = int(time.time())
-        print("Error retrieving last sales")
+        print(f"Error retrieving last sales {err}")
     try:
         listings, last_listings_time = get_gm_events_from_last_time(GM_LISTINGS_URL, last_listings_time, "listing", "Offered", 0x2596be, [], None)
         print(f"Listings to send: {len(listings)}")
         for listing in listings[::-1]:
             bot.loop.create_task(_discord_task(listing))
-    except:
+    except Exception as err:
         last_listings_time = int(time.time())
-        print("Error retrieving last listings")
+        print(f"Error retrieving last listings {err}")
     try:
         offers, last_offers_time = get_gm_events_from_last_time(GM_OFFERS_URL, last_offers_time, "offer", "Offer", 0xe4b634, [], None)
         print(f"Offers to send: {len(offers)}")
         for offer in offers[::-1]:
             bot.loop.create_task(_discord_task(offer))
-    except:
+    except Exception as err:
         last_offers_time = int(time.time())
-        print("Error retrieving last offers")
+        print(f"Error retrieving last offers {err}")
     try:
         bids, last_bids_time = get_gm_events_from_last_time(GM_BIDS_URL, last_bids_time, "bid", "Bid", 0xb54423, [], None)
         print(f"Bids to send: {len(bids)}")
         for bid in bids[::-1]:
             bot.loop.create_task(_discord_task(bid))
-    except:
+    except Exception as err:
         last_bids_time = int(time.time())
-        print("Error retrieving last bids")
+        print(f"Error retrieving last bids {err}")
     timeout_sesc = 10
     print(f"All tasks done. Going sleep for {timeout_sesc} secs...")
     time.sleep(timeout_sesc)
